@@ -3,6 +3,8 @@
 namespace Snap\Blade;
 
 use Snap\Core\Snap;
+use Snap\Services\Provider;
+use Snap\Templating\Templating_Interface;
 
 
 /**
@@ -17,7 +19,15 @@ class Blade_Provider extends Provider
      */
     public function register()
     {
+    	Snap::services()->add(
+            Strategy::class,
+            function ($hodl) {
+                return new Strategy;
+            }
+        );    	
 
+
+        Snap::services()->bind(Strategy::class, Templating_Interface::class);
     }
 
 }
