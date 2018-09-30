@@ -1,0 +1,45 @@
+{
+    "name": "snapwp/snap-blade",
+    "license": "GPL-3.0-or-later",
+    "description": "Add support for the Blade templating engine into SnapWP",
+    "authors": [
+        {
+            "name": "Jake Whiteley",
+            "email": "jakebwhiteley@gmail.com"
+        }
+    ],
+    "keywords": [
+        "wordpress"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Snap\\Blade\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7",
+        "snapwp/snap-core": ">=1.0.0",
+        "composer require eftec/bladeone": "~3.11",
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "~3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
+        "wp-coding-standards/wpcs": "^0.14.1",
+        "friendsofphp/php-cs-fixer": "^2.11"
+    },
+    "scripts": {
+        "sniff": [
+            "phpcs --extensions=php ."
+        ],           
+        "fix": [
+            "php-cs-fixer fix",
+            "phpcbf --extensions=php ."
+        ],
+        "sniff-docs": [
+            "phpcs --ignore=*/vendor/* --extensions=php --standard=WordPress-Docs --exclude=Squiz.Commenting.FileComment ."
+        ],         
+        "fix-docs": [
+            "phpcbf --ignore=*/vendor/* --extensions=php --standard=WordPress-Docs --exclude=Squiz.Commenting.FileComment ."
+        ]
+    }
+}
