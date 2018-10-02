@@ -4,12 +4,15 @@
 	
 	@if(have_posts())
 		@loop
-			@include('post')
+
+			{{-- This is a shortcut to render the current partials.post-type.{get_post_type()} --}}
+			@posttypepartial
+
 		@endloop
 
 		@paginate
 	@else
-		no posts bro
+		@partial('post-type.none')
 	@endif
 
 @endsection

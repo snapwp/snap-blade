@@ -1,11 +1,11 @@
 <!doctype html>
 <html {{ language_attributes() }} class="no-js">
 
-	@include('partials.header')
+	@partial('header')
 
 	<body itemscope itemtype="http://schema.org/WebPage" {{ body_class() }}>
 		
-		@include('partials.nav')
+		@partial('navigation')
 
 		<div class="container">
 			<div class="row">
@@ -23,7 +23,7 @@
 			</div>
 		</div>
 
-		@include('partials.footer')
+		@partial('footer')
 
 	</body>
 </html>

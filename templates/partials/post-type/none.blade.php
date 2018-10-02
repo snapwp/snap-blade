@@ -1,4 +1,4 @@
-@component('alert')
+@component('partials.components.alert')
     @slot('title')
         Oh Snap!
     @endslot
