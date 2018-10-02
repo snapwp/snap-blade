@@ -6,79 +6,110 @@ use Snap\Core\Snap;
 use Snap\Templating\Templating_Interface;
 use eftec\bladeone\BladeOne;
 
+/**
+ * The Blade templating strategy.
+ */
 class Strategy implements Templating_Interface
 {
-	public function __construct()
-	{
-		$blade = new BladeOne(
-			\locate_template(Snap::config('theme.templates_directory')),
-			\locate_template(\trailingslashit(Snap::config('theme.cache_directory')) . 'templates'),
-			BladeOne::MODE_SLOW
-		);
+    /**
+     * The current view name being displayed.
+     *
+     * @since  1.0.0
+     * @var string|null
+     */
+    protected $current_view = null;
 
-		$blade->setInjectResolver(function ($namespace, $variableName) {
-		    return Snap::services()->get($namespace);
-		});
+    /**
+     * Renders a view.
+     *
+     * @since  1.0.0
+     *
+     * @param  string $slug The slug for the generic template.
+     * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     */
+    public function render($slug, $data = [])
+    {
+        $this->current_view = $this->get_template_name($slug);
 
-		if (is_user_logged_in()) {
-			$current_user = wp_get_current_user();
-			$blade->setAuth($current_user->data->display_name);
-		}
+        $data = $this->add_default_data($data);
 
-		$blade->setCanFunction(function ($action = null, $subject = null) {
-			if ($subject === null) {
-				return current_user_can($action);
-			}
+        echo Snap::services()->get('blade')->run($this->current_view, $data);
+    }
 
-			return user_can($subject, $action);
-		});
+    /**
+     * Fetch and display a template partial.
+     *
+     * @since  1.0.0
+     *
+     * @param  string $slug The slug for the generic template.
+     * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     */
+    public function partial($slug, $data = [])
+    {
+        $data = $this->add_default_data($data);
 
-		$blade->setAnyFunction(function ($array = []) {
-            foreach($array as $permission) {
-                if (current_user_can($permission)) {
-                	return true;
-                }
-            }
-            
-            return false;
-        });
+        echo Snap::services()->get('blade')->run('partials.' . $this->bladeify($slug), $data);
+    }
 
-		$blade->directive('wphead', function() {
-			return '<?php wp_head(); ?>';
-		});
+    /**
+     * Generate the template file name from the slug.
+     *
+     * @since 1.0.0
+     *
+     * @param  string $slug The slug for the generic template.
+     * @return string
+     */
+    public function get_template_name($slug)
+    {
+        $slug = \str_replace([ Snap::config('theme.templates_directory') . '/', '.php' ], '', $slug);
 
-		$blade->directive('wpfooter', function () {
-			return '<?php wp_footer(); ?>';	
-		});
+        if (\strpos($slug, 'views/') !== 0) {
+            $slug = 'views.' . $slug;
+        }
 
-		$blade->directive('loop', function () {
-			return '<?php if ($wp_query->have_posts()) : while ($wp_query->have_posts()) : $wp_query->the_post(); ?>';
-		});
+        return $this->bladeify($slug);
+    }
 
-		$blade->directive('endloop', function () {
-			return '<?php endwhile; endif; ?>';
-		});
+    /**
+     * Returns the current view template name.
+     *
+     * @since 1.0.0
+     *
+     * @return string|null Returns null if called before a view has been dispatched.
+     */
+    public function get_current_view()
+    {
+        return $this->current_view;
+    }
 
-		Snap::services()->addSingleton(BladeOne::class, function() use ($blade) {
-			return $blade;
-		});
+    /**
+     * Add default data to template.
+     *
+     * @since  1.0.0
+     *
+     * @param array $data Data array.
+     */
+    private function add_default_data($data = [])
+    {
+        global $wp_query, $post;
+        
+        $data['wp_query'] = $wp_query;
+        $data['post'] = &$post;
+        $data['current_view'] = $this->current_view;
 
-		Snap::services()->alias(BladeOne::class, 'blade');
-	}
+        return $data;
+    }
 
-	public function render($slug, $data = [])
-	{
-		//echo $this->blade->run('views.'.$slug, $data);
-		global $wp_query;
-		$data['wp_query'] = $wp_query;
-
-		echo Snap::services()->get('blade')->run($slug, $data);
-	}
-
-	public function partial($slug, $data = [])
-	{
-		//dump($slug, $data);
-		echo Snap::services()->get('blade')->runChild('partials.'.$slug, $data);
-	}
-
+    /**
+     * Replace slashes with periods.
+     *
+     * @since  1.0.0
+     *
+     * @param  string $slug Template path to bladeify.
+     * @return string
+     */
+    private function bladeify($slug)
+    {
+        return \str_replace(['/', '\\'], '.', $slug);
+    }
 }
