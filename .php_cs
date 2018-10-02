@@ -1,7 +1,7 @@
 <?php
 
 $finder = PhpCsFixer\Finder::create()
-    ->exclude('vendor')
+    ->exclude(['vendor', 'templates'])
     ->in(__DIR__);
 
 return PhpCsFixer\Config::create()
