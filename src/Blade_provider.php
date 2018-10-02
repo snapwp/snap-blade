@@ -182,21 +182,28 @@ class Blade_Provider extends Provider
         );
 
         $blade->directive(
+            'posttypepartial',
+            function () {
+                return '<?php echo $this->runChild(\'partials.post-type.'. get_post_type() .'\'); ?>';
+            }
+        );
+
+        $blade->directive(
             'paginate',
             function ($input = []) {
                 $input = $input ?? '[]';
 
                 return '
-			<?php
-			$pagination = \Snap\Core\Snap::services()->resolve(
-	            \Snap\Modules\Pagination::class,
-	            [
-	                \'args\' => ' . ($input) .',
-	            ]
-	        );
+            <?php
+            $pagination = \Snap\Core\Snap::services()->resolve(
+                \Snap\Modules\Pagination::class,
+                [
+                    \'args\' => ' . ($input) .',
+                ]
+            );
 
-	        echo $pagination->get();
-	        ?>';
+            echo $pagination->get();
+            ?>';
             }
         );
 
