@@ -32,6 +32,9 @@ class Blade_Provider extends Provider
 
         // Bind blade strategy as the current Templating engine.
         Snap::services()->bind(Strategy::class, Templating_Interface::class);
+
+        $this->publishes_config(\realpath(__DIR__ . '/../config'));
+        $this->publishes_directory(\realpath(__DIR__ . '/../templates'), Snap::config('theme.templates_directory'));
     }
 
     /**
@@ -44,8 +47,12 @@ class Blade_Provider extends Provider
         $blade = new Snap_Blade(
             \locate_template(Snap::config('theme.templates_directory')),
             \locate_template(\trailingslashit(Snap::config('theme.cache_directory')) . 'templates'),
-            BladeOne::MODE_SLOW
+            Snap::config('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
         );
+
+        if (Snap::config('blade.file_extension') !==  $blade->getFileExtension()) {
+            $blade->setFileExtension(Snap::config('blade.file_extension'));
+        }
 
         // Set the @inject directive to resolve from the service container.
         $blade->setInjectResolver(
@@ -54,6 +61,25 @@ class Blade_Provider extends Provider
             }
         );
 
+        $this->set_auth_callbacks($blade);
+
+        $this->add_directives($blade);
+        $this->add_wp_directives($blade);
+
+        Snap::services()->addInstance($blade);
+
+        Snap::services()->alias(Snap_Blade::class, 'blade');
+    }
+
+    /**
+     * Sets the authentication and can/cannot functionality.
+     *
+     * @since  1.0.0
+     *
+     * @param BladeOne $blade The BladeOne service.
+     */
+    private function set_auth_callbacks($blade)
+    {
         // Set the current user.
         if (is_user_logged_in()) {
             $current_user = wp_get_current_user();
@@ -83,17 +109,6 @@ class Blade_Provider extends Provider
                 return false;
             }
         );
-
-        $this->add_directives($blade);
-
-        Snap::services()->addSingleton(
-            Snap_Blade::class,
-            function () use ($blade) {
-                return $blade;
-            }
-        );
-
-        Snap::services()->alias(Snap_Blade::class, 'blade');
     }
 
     /**
@@ -105,48 +120,6 @@ class Blade_Provider extends Provider
      */
     private function add_directives($blade)
     {
-        $blade->directive(
-            'wphead',
-            function () {
-                return '<?php wp_head(); ?>';
-            }
-        );
-
-        $blade->directive(
-            'wpfooter',
-            function () {
-                return '<?php wp_footer(); ?>';
-            }
-        );
-
-        $blade->directive(
-            'sidebar',
-            function ($input) {
-                return "<?php dynamic_sidebar{$input}; ?>";
-            }
-        );
-
-        $blade->directive(
-            'thecontent',
-            function ($input) {
-                return "<?php the_content(); ?>";
-            }
-        );
-
-        $blade->directive(
-            'theexcerpt',
-            function ($input) {
-                return "<?php the_excerpt(); ?>";
-            }
-        );
-
-        $blade->directive(
-            'navmenu',
-            function ($input) {
-                return "<?php wp_nav_menu{$input}; ?>";
-            }
-        );
-
         $blade->directive(
             'simplemenu',
             function ($expression) {
@@ -194,16 +167,16 @@ class Blade_Provider extends Provider
                 $input = $input ?? '[]';
 
                 return '
-            <?php
-            $pagination = \Snap\Core\Snap::services()->resolve(
-                \Snap\Modules\Pagination::class,
-                [
-                    \'args\' => ' . ($input) .',
-                ]
-            );
+			<?php
+			$pagination = \Snap\Core\Snap::services()->resolve(
+	            \Snap\Modules\Pagination::class,
+	            [
+	                \'args\' => ' . ($input) .',
+	            ]
+	        );
 
-            echo $pagination->get();
-            ?>';
+	        echo $pagination->get();
+	        ?>';
             }
         );
 
@@ -219,6 +192,58 @@ class Blade_Provider extends Provider
             'endloop',
             function () {
                 return '<?php endwhile; endif; ?>';
+            }
+        );
+    }
+
+    /**
+     * Add custom directives for WordPress functions to blade.
+     *
+     * @since  1.0.0
+     *
+     * @param BladeOne $blade The BladeOne service.
+     */
+    private function add_wp_directives($blade)
+    {
+        $blade->directive(
+            'wphead',
+            function () {
+                return '<?php wp_head(); ?>';
+            }
+        );
+
+        $blade->directive(
+            'wpfooter',
+            function () {
+                return '<?php wp_footer(); ?>';
+            }
+        );
+
+        $blade->directive(
+            'sidebar',
+            function ($input) {
+                return "<?php dynamic_sidebar{$input}; ?>";
+            }
+        );
+
+        $blade->directive(
+            'thecontent',
+            function ($input) {
+                return "<?php the_content(); ?>";
+            }
+        );
+
+        $blade->directive(
+            'theexcerpt',
+            function ($input) {
+                return "<?php the_excerpt(); ?>";
+            }
+        );
+
+        $blade->directive(
+            'navmenu',
+            function ($input) {
+                return "<?php wp_nav_menu{$input}; ?>";
             }
         );
     }
