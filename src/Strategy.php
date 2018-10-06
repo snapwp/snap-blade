@@ -34,6 +34,9 @@ class Strategy implements Templating_Interface
         $data = $this->add_default_data($data);
 
         echo Snap::services()->get('blade')->run($this->current_view, $data);
+
+        // Now a view has been rendered, reset the current_view context.
+        $this->current_view = null;
     }
 
     /**
@@ -48,7 +51,13 @@ class Strategy implements Templating_Interface
     {
         $data = $this->add_default_data($data);
 
-        echo Snap::services()->get('blade')->run('partials.' . $this->bladeify($slug), $data);
+        // Check if this is being run outside of a view context.
+        if ($this->current_view === null) {
+            echo Snap::services()->get('blade')->run('partials.' . $this->bladeify($slug), $data);
+            return;
+        }
+
+        echo Snap::services()->get('blade')->runChild('partials.' . $this->bladeify($slug), $data);
     }
 
     /**
