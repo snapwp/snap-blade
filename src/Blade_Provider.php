@@ -225,6 +225,13 @@ class Blade_Provider extends Provider
                 return "<?php dynamic_sidebar{$input}; ?>";
             }
         );
+	    
+	    $blade->directive(
+            'action',
+            function ($input) {
+                return "<?php do_action({$input}); ?>";
+            }
+        );
 
         $blade->directive(
             'thecontent',
