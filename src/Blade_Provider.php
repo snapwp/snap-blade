@@ -83,7 +83,7 @@ class Blade_Provider extends Provider
         // Set the current user.
         if (is_user_logged_in()) {
             $current_user = wp_get_current_user();
-            $blade->setAuth($current_user->data->display_name);
+            $blade->setAuth($current_user->data->display_name, snap_get_user_role());
         }
 
         // Set the @can directive.
