@@ -5,7 +5,6 @@ namespace Snap\Blade;
 use eftec\bladeone\BladeOne;
 use Snap\Exceptions\Templating_Exception;
 use Snap\Templating\View;
-use Snap\Core\Snap;
 
 /**
  * Extends BladeOne.
@@ -33,21 +32,23 @@ class Snap_Blade extends BladeOne
      * Ensures any additional data provided by View::when() is passed to BladeOne.
      *
      * @since  1.0.0
-     * 
+     *
      * @param string $partial The template name to render.
      * @param array  $data    The data to pass to BladeOne.
+     *
      * @return string
+     *
+     * @throws \Exception
      */
     public function runChild($partial, $data = array())
     {
         return parent::runChild(
             $partial, 
             \array_merge(
-                View::get_additional_data(
-                    $partial,
-                    // Ensure data passed into parent view is passed to this child.
-                    \array_merge($this->variables, $data)
-                ), 
+                $this->variables,
+                // Get default data for the current template.
+                View::get_additional_data($partial, $data),
+                // Ensure data passed into parent view is passed to this child.
                 $data
             )
         );
@@ -55,12 +56,14 @@ class Snap_Blade extends BladeOne
 
     /**
      * Run the blade engine. Is only called when rendering a view.
-     * 
+     *
      * @since  1.0.0
-     * 
+     *
      * @param string $view The template name to render.
      * @param array  $data The data to pass to BladeOne.
      * @return string
+     *
+     * @throws \Exception
      */
     public function run($view, $data = array())
     {

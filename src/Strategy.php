@@ -4,7 +4,6 @@ namespace Snap\Blade;
 
 use Snap\Core\Snap;
 use Snap\Templating\Templating_Interface;
-use eftec\bladeone\BladeOne;
 
 /**
  * The Blade templating strategy.
@@ -26,6 +25,9 @@ class Strategy implements Templating_Interface
      *
      * @param  string $slug The slug for the generic template.
      * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     *
+     * @throws \Hodl\Exceptions\ContainerException
+     * @throws \Hodl\Exceptions\NotFoundException
      */
     public function render($slug, $data = [])
     {
@@ -46,6 +48,9 @@ class Strategy implements Templating_Interface
      *
      * @param  string $slug The slug for the generic template.
      * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     *
+     * @throws \Hodl\Exceptions\ContainerException
+     * @throws \Hodl\Exceptions\NotFoundException
      */
     public function partial($slug, $data = [])
     {
@@ -97,6 +102,7 @@ class Strategy implements Templating_Interface
      * @since  1.0.0
      *
      * @param array $data Data array.
+     * @return array
      */
     private function add_default_data($data = [])
     {
