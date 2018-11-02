@@ -2,15 +2,16 @@
 
 namespace Snap\Blade;
 
-use Snap\Core\Snap;
-use Snap\Services\Provider;
-use Snap\Templating\Templating_Interface;
 use eftec\bladeone\BladeOne;
+use Snap\Services\Config;
+use Snap\Services\Container;
+use Snap\Services\Service_Provider;
+use Snap\Templating\Templating_Interface;
 
 /**
  * Snap Debug service provider.
  */
-class Blade_Provider extends Provider
+class Blade_Service_Provider extends Service_Provider
 {
     /**
      * Register the Service.
@@ -24,43 +25,49 @@ class Blade_Provider extends Provider
 
         $this->add_blade();
 
-        Snap::services()->add(
+        Container::add(
             Strategy::class,
             function () {
                 return new Strategy;
             }
         );
 
+        Container::remove(\Snap\Templating\Standard\Strategy::class);
+        Container::remove(\Snap\Templating\Standard\Partial::class);
+
         // Bind blade strategy as the current Templating engine.
-        Snap::services()->bind(Strategy::class, Templating_Interface::class);
+        Container::bind(Strategy::class, Templating_Interface::class);
 
         $this->publishes_config(\realpath(__DIR__ . '/../config'));
-        $this->publishes_directory(\realpath(__DIR__ . '/../templates'), Snap::config('theme.templates_directory'));
+
+        dump(Container::get_root_instance());
+        $this->publishes_directory(
+            \realpath(__DIR__ . '/../templates'),
+            Config::get('theme.templates_directory')
+        );
     }
 
     /**
      * Creates the Snap_blade instance, and adds to service container.
      *
      * @since  1.0.0
-     *
-     * @throws \Hodl\Exceptions\ContainerException
      */
     public function add_blade()
     {
         $blade = new Snap_Blade(
-            \locate_template(Snap::config('theme.templates_directory')),
-            \locate_template(\trailingslashit(Snap::config('theme.cache_directory')) . 'templates'),
-            Snap::config('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
+            \locate_template(Config::get('theme.templates_directory')),
+            \locate_template(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
+            Config::get('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
         );
 
-        if (Snap::config('blade.file_extension') !==  $blade->getFileExtension()) {
-            $blade->setFileExtension(Snap::config('blade.file_extension'));
+        if (Config::get('blade.file_extension') !==  $blade->getFileExtension()) {
+            $blade->setFileExtension(Config::get('blade.file_extension'));
         }
 
         // Set the @inject directive to resolve from the service container.
         $blade->setInjectResolver(
             function ($namespace) {
-                return Snap::services()->get($namespace);
+                return Container::get($namespace);
             }
         );
 
@@ -69,9 +76,9 @@ class Blade_Provider extends Provider
         $this->add_directives($blade);
         $this->add_wp_directives($blade);
 
-        Snap::services()->addInstance($blade);
+        Container::add_instance($blade);
 
-        Snap::services()->alias(Snap_Blade::class, 'blade');
+        Container::alias(Snap_Blade::class, 'blade');
     }
 
     /**
@@ -171,7 +178,7 @@ class Blade_Provider extends Provider
 
                 return '
 			<?php
-			$pagination = \Snap\Core\Snap::services()->resolve(
+			$pagination = \Snap\Services\Container::resolve(
 	            \Snap\Templating\Pagination::class,
 	            [
 	                \'args\' => ' . ($input) .',
