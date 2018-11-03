@@ -2,20 +2,22 @@
 
 namespace Snap\Blade;
 
-use Snap\Core\Snap;
-use Snap\Services\Provider;
-use Snap\Templating\Templating_Interface;
 use eftec\bladeone\BladeOne;
+use Snap\Services\Config;
+use Snap\Services\Container;
+use Snap\Services\Service_Provider;
+use Snap\Templating\Templating_Interface;
 
 /**
  * Snap Debug service provider.
  */
-class Blade_Provider extends Provider
+class Blade_Service_Provider extends Service_Provider
 {
     /**
      * Register the Service.
      *
      * @since  1.0.0
+     *
      */
     public function register()
     {
@@ -23,18 +25,26 @@ class Blade_Provider extends Provider
 
         $this->add_blade();
 
-        Snap::services()->add(
+        Container::add(
             Strategy::class,
-            function ($hodl) {
+            function () {
                 return new Strategy;
             }
         );
 
+        Container::remove(\Snap\Templating\Standard\Strategy::class);
+        Container::remove(\Snap\Templating\Standard\Partial::class);
+
         // Bind blade strategy as the current Templating engine.
-        Snap::services()->bind(Strategy::class, Templating_Interface::class);
+        Container::bind(Strategy::class, Templating_Interface::class);
 
         $this->publishes_config(\realpath(__DIR__ . '/../config'));
-        $this->publishes_directory(\realpath(__DIR__ . '/../templates'), Snap::config('theme.templates_directory'));
+
+        dump(Container::get_root_instance());
+        $this->publishes_directory(
+            \realpath(__DIR__ . '/../templates'),
+            Config::get('theme.templates_directory')
+        );
     }
 
     /**
@@ -45,19 +55,19 @@ class Blade_Provider extends Provider
     public function add_blade()
     {
         $blade = new Snap_Blade(
-            \locate_template(Snap::config('theme.templates_directory')),
-            \locate_template(\trailingslashit(Snap::config('theme.cache_directory')) . 'templates'),
-            Snap::config('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
+            \locate_template(Config::get('theme.templates_directory')),
+            \locate_template(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
+            Config::get('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
         );
 
-        if (Snap::config('blade.file_extension') !==  $blade->getFileExtension()) {
-            $blade->setFileExtension(Snap::config('blade.file_extension'));
+        if (Config::get('blade.file_extension') !==  $blade->getFileExtension()) {
+            $blade->setFileExtension(Config::get('blade.file_extension'));
         }
 
         // Set the @inject directive to resolve from the service container.
         $blade->setInjectResolver(
-            function ($namespace, $variable_name) {
-                return Snap::services()->get($namespace);
+            function ($namespace) {
+                return Container::get($namespace);
             }
         );
 
@@ -66,9 +76,9 @@ class Blade_Provider extends Provider
         $this->add_directives($blade);
         $this->add_wp_directives($blade);
 
-        Snap::services()->addInstance($blade);
+        Container::add_instance($blade);
 
-        Snap::services()->alias(Snap_Blade::class, 'blade');
+        Container::alias(Snap_Blade::class, 'blade');
     }
 
     /**
@@ -83,7 +93,7 @@ class Blade_Provider extends Provider
         // Set the current user.
         if (is_user_logged_in()) {
             $current_user = wp_get_current_user();
-            $blade->setAuth($current_user->data->display_name, snap_get_user_role());
+            $blade->setAuth($current_user->data->display_name);
         }
 
         // Set the @can directive.
@@ -129,7 +139,7 @@ class Blade_Provider extends Provider
                 
                 $iteration = \trim($matches[2]);
                 
-                $init_loop = "\$__currentLoopData = Snap\Core\Utils::get_nav_menu($iteratee); 
+                $init_loop = "\$__currentLoopData = \Snap\Utils\Menu_Utils::get_nav_menu($iteratee); 
                     \$this->addLoop(\$__currentLoopData);";
                
                 $iterate_loop = '$this->incrementLoopIndices(); 
@@ -141,7 +151,7 @@ class Blade_Provider extends Provider
 
         $blade->directive(
             'endsimplemenu',
-            function ($expression) {
+            function () {
                 return '<?php endforeach; $this->popLoop(); $loop = $this->getFirstLoop(); ?>';
             }
         );
@@ -168,8 +178,8 @@ class Blade_Provider extends Provider
 
                 return '
 			<?php
-			$pagination = \Snap\Core\Snap::services()->resolve(
-	            \Snap\Modules\Pagination::class,
+			$pagination = \Snap\Services\Container::resolve(
+	            \Snap\Templating\Pagination::class,
 	            [
 	                \'args\' => ' . ($input) .',
 	            ]
@@ -225,24 +235,17 @@ class Blade_Provider extends Provider
                 return "<?php dynamic_sidebar{$input}; ?>";
             }
         );
-	    
-	    $blade->directive(
-            'action',
-            function ($input) {
-                return "<?php do_action({$input}); ?>";
-            }
-        );
 
         $blade->directive(
             'thecontent',
-            function ($input) {
+            function () {
                 return "<?php the_content(); ?>";
             }
         );
 
         $blade->directive(
             'theexcerpt',
-            function ($input) {
+            function () {
                 return "<?php the_excerpt(); ?>";
             }
         );

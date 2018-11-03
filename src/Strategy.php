@@ -2,9 +2,9 @@
 
 namespace Snap\Blade;
 
-use Snap\Core\Snap;
+use Snap\Services\Config;
+use Snap\Services\Container;
 use Snap\Templating\Templating_Interface;
-use eftec\bladeone\BladeOne;
 
 /**
  * The Blade templating strategy.
@@ -33,7 +33,7 @@ class Strategy implements Templating_Interface
 
         $data = $this->add_default_data($data);
 
-        echo Snap::services()->get('blade')->run($this->current_view, $data);
+        echo Container::get('blade')->run($this->current_view, $data);
 
         // Now a view has been rendered, reset the current_view context.
         $this->current_view = null;
@@ -53,11 +53,11 @@ class Strategy implements Templating_Interface
 
         // Check if this is being run outside of a view context.
         if ($this->current_view === null) {
-            echo Snap::services()->get('blade')->run('partials.' . $this->bladeify($slug), $data);
+            echo Container::get('blade')->run('partials.' . $this->bladeify($slug), $data);
             return;
         }
 
-        echo Snap::services()->get('blade')->runChild('partials.' . $this->bladeify($slug), $data);
+        echo Container::get('blade')->runChild('partials.' . $this->bladeify($slug), $data);
     }
 
     /**
@@ -70,7 +70,7 @@ class Strategy implements Templating_Interface
      */
     public function get_template_name($slug)
     {
-        $slug = \str_replace([ Snap::config('theme.templates_directory') . '/', '.php' ], '', $slug);
+        $slug = \str_replace([ Config::get('theme.templates_directory') . '/', '.php' ], '', $slug);
 
         if (\strpos($slug, 'views/') !== 0) {
             $slug = 'views.' . $slug;
@@ -97,6 +97,7 @@ class Strategy implements Templating_Interface
      * @since  1.0.0
      *
      * @param array $data Data array.
+     * @return array
      */
     private function add_default_data($data = [])
     {
