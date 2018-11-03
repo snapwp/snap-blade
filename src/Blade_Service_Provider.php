@@ -7,6 +7,7 @@ use Snap\Services\Config;
 use Snap\Services\Container;
 use Snap\Services\Service_Provider;
 use Snap\Templating\Templating_Interface;
+use Snap\Utils\Theme_Utils;
 
 /**
  * Snap Debug service provider.
@@ -40,7 +41,6 @@ class Blade_Service_Provider extends Service_Provider
 
         $this->publishes_config(\realpath(__DIR__ . '/../config'));
 
-        dump(Container::get_root_instance());
         $this->publishes_directory(
             \realpath(__DIR__ . '/../templates'),
             Config::get('theme.templates_directory')
@@ -55,8 +55,8 @@ class Blade_Service_Provider extends Service_Provider
     public function add_blade()
     {
         $blade = new Snap_Blade(
-            \locate_template(Config::get('theme.templates_directory')),
-            \locate_template(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
+            Theme_Utils::get_active_theme_path(Config::get('theme.templates_directory')),
+            Theme_Utils::get_active_theme_path(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
             Config::get('blade.development_mode') ? BladeOne::MODE_DEBUG : BladeOne::MODE_AUTO
         );
 
