@@ -237,6 +237,13 @@ class Blade_Service_Provider extends Service_Provider
         );
 
         $blade->directive(
+            'action',
+            function ($input) {
+                return "<?php do_action{$input}; ?>";
+            }
+        );
+
+        $blade->directive(
             'thecontent',
             function () {
                 return "<?php the_content(); ?>";
