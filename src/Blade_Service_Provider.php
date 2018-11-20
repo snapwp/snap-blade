@@ -91,19 +91,19 @@ class Blade_Service_Provider extends Service_Provider
     private function set_auth_callbacks($blade)
     {
         // Set the current user.
-        if (is_user_logged_in()) {
-            $current_user = wp_get_current_user();
-            $blade->setAuth($current_user->data->display_name);
+        if (\is_user_logged_in()) {
+            $current_user = \wp_get_current_user();
+            $blade->setAuth($current_user->data->display_name, User_Utils::get_user_role()->name);
         }
 
         // Set the @can directive.
         $blade->setCanFunction(
             function ($action = null, $subject = null) {
                 if ($subject === null) {
-                    return current_user_can($action);
+                    return \current_user_can($action);
                 }
 
-                return user_can($subject, $action);
+                return \user_can($subject, $action);
             }
         );
 
@@ -111,7 +111,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->setAnyFunction(
             function ($array = []) {
                 foreach ($array as $permission) {
-                    if (current_user_can($permission)) {
+                    if (\current_user_can($permission)) {
                         return true;
                     }
                 }
