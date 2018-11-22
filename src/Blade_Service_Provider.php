@@ -8,6 +8,7 @@ use Snap\Services\Container;
 use Snap\Services\Service_Provider;
 use Snap\Templating\Templating_Interface;
 use Snap\Utils\Theme_Utils;
+use Snap\Utils\User_Utils;
 
 /**
  * Snap Debug service provider.
@@ -33,7 +34,7 @@ class Blade_Service_Provider extends Service_Provider
             }
         );
 
-        Container::remove(\Snap\Templating\Standard\Strategy::class);
+        Container::remove(\Snap\Templating\Standard\Standard_Strategy::class);
         Container::remove(\Snap\Templating\Standard\Partial::class);
 
         // Bind blade strategy as the current Templating engine.
