@@ -3,13 +3,12 @@
 namespace Snap\Blade;
 
 use Snap\Services\Config;
-use Snap\Services\Container;
 use Snap\Templating\Templating_Interface;
 
 /**
  * The Blade templating strategy.
  */
-class Strategy implements Templating_Interface
+class Blade_Strategy implements Templating_Interface
 {
     /**
      * The current view name being displayed.
@@ -20,12 +19,26 @@ class Strategy implements Templating_Interface
     protected $current_view = null;
 
     /**
+     * Snap_Blade instance.
+     *
+     * @since 1.0.0
+     * @var Snap_Blade
+     */
+    private $blade;
+
+    public function __construct(Snap_Blade $blade)
+    {
+        $this->blade = $blade;
+    }
+
+    /**
      * Renders a view.
      *
      * @since  1.0.0
      *
      * @param  string $slug The slug for the generic template.
      * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     * @throws \Exception
      */
     public function render($slug, $data = [])
     {
@@ -33,7 +46,7 @@ class Strategy implements Templating_Interface
 
         $data = $this->add_default_data($data);
 
-        echo Container::get('blade')->run($this->current_view, $data);
+        echo $this->blade->run($this->current_view, $data);
 
         // Now a view has been rendered, reset the current_view context.
         $this->current_view = null;
@@ -46,6 +59,7 @@ class Strategy implements Templating_Interface
      *
      * @param  string $slug The slug for the generic template.
      * @param  array  $data Optional. Additional data to pass to a partial. Available in the partial as $data.
+     * @throws \Exception
      */
     public function partial($slug, $data = [])
     {
@@ -53,11 +67,11 @@ class Strategy implements Templating_Interface
 
         // Check if this is being run outside of a view context.
         if ($this->current_view === null) {
-            echo Container::get('blade')->run('partials.' . $this->bladeify($slug), $data);
+            echo $this->blade->run('partials.' . $this->bladeify($slug), $data);
             return;
         }
 
-        echo Container::get('blade')->runChild('partials.' . $this->bladeify($slug), $data);
+        echo $this->blade->runChild('partials.' . $this->bladeify($slug), $data);
     }
 
     /**
@@ -70,7 +84,14 @@ class Strategy implements Templating_Interface
      */
     public function get_template_name($slug)
     {
-        $slug = \str_replace([ Config::get('theme.templates_directory') . '/', '.php' ], '', $slug);
+        $slug = \str_replace(
+            [
+                Config::get('theme.templates_directory') . '/',
+                $this->blade->getFileExtension(),
+            ],
+            '',
+            $slug
+        );
 
         if (\strpos($slug, 'views/') !== 0) {
             $slug = 'views.' . $slug;

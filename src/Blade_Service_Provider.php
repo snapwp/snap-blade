@@ -6,8 +6,11 @@ use eftec\bladeone\BladeOne;
 use Snap\Services\Config;
 use Snap\Services\Container;
 use Snap\Services\Service_Provider;
+use Snap\Templating\Standard\Partial;
+use Snap\Templating\Standard\Standard_Strategy;
 use Snap\Templating\Templating_Interface;
 use Snap\Utils\Theme_Utils;
+use Snap\Utils\User_Utils;
 
 /**
  * Snap Debug service provider.
@@ -27,17 +30,17 @@ class Blade_Service_Provider extends Service_Provider
         $this->add_blade();
 
         Container::add(
-            Strategy::class,
-            function () {
-                return new Strategy;
+            Blade_Strategy::class,
+            function (\Snap\Core\Container $container) {
+                return $container->resolve(Blade_Strategy::class);
             }
         );
 
-        Container::remove(\Snap\Templating\Standard\Strategy::class);
-        Container::remove(\Snap\Templating\Standard\Partial::class);
+        Container::remove(Standard_Strategy::class);
+        Container::remove(Partial::class);
 
         // Bind blade strategy as the current Templating engine.
-        Container::bind(Strategy::class, Templating_Interface::class);
+        Container::bind(Blade_Strategy::class, Templating_Interface::class);
 
         $this->publishes_config(\realpath(__DIR__ . '/../config'));
 
