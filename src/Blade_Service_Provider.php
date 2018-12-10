@@ -170,7 +170,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'posttypepartial',
             function () {
-                return '<?php echo $this->runChild(\'partials.post-type.'. get_post_type() .'\'); ?>';
+                return '<?php echo $this->runChild(\'partials.post-type.'. \get_post_type() .'\'); ?>';
             }
         );
 
@@ -195,16 +195,30 @@ class Blade_Service_Provider extends Service_Provider
 
         $blade->directive(
             'loop',
-            function () {
-                return '<?php if ($wp_query->have_posts()) : 
-                    while ($wp_query->have_posts()) : $wp_query->the_post(); ?>';
+            function ($input) {
+                $input = $this->trim_input($input);
+
+                $init_loop = '$__loop_query = $wp_query;';
+
+                if (! empty($input)) {
+                    $init_loop = '$__loop_query = ' . $input . ';';
+                }
+
+                $init_loop .= '$__currentLoopData = $__loop_query->posts; 
+                    $this->addLoop($__currentLoopData); 
+                    global $post;';
+
+                $iterate_loop = '$this->incrementLoopIndices(); $loop = $this->getFirstLoop();';
+
+                return "<?php {$init_loop} while (\$__loop_query->have_posts()): 
+                    \$__loop_query->the_post(); {$iterate_loop} ?>";
             }
         );
 
         $blade->directive(
             'endloop',
             function () {
-                return '<?php endwhile; endif; ?>';
+                return '<?php endwhile;  ?>';
             }
         );
     }
@@ -235,14 +249,14 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'sidebar',
             function ($input) {
-                return "<?php dynamic_sidebar{$input}; ?>";
+                return "<?php dynamic_sidebar({$this->trim_input($input)}); ?>";
             }
         );
 
         $blade->directive(
             'action',
             function ($input) {
-                return "<?php do_action{$input}; ?>";
+                return "<?php do_action({$this->trim_input($input)}); ?>";
             }
         );
 
@@ -263,8 +277,21 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'navmenu',
             function ($input) {
-                return "<?php wp_nav_menu{$input}; ?>";
+                return "<?php wp_nav_menu({$this->trim_input($input)}); ?>";
             }
         );
+    }
+
+    /**
+     * Remove surrounding brackets from BladeOne inputs.
+     *
+     * @since 1.0.0
+     *
+     * @param $input
+     * @return string
+     */
+    private function trim_input($input)
+    {
+        return \trim($input, '()');
     }
 }
