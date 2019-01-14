@@ -170,7 +170,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'posttypepartial',
             function () {
-                return '<?php echo $this->runChild(\'partials.post-type.'. \get_post_type() .'\'); ?>';
+                return '<?php echo $this->runChild(\'partials.post-type.\' . \get_post_type()); ?>';
             }
         );
 
