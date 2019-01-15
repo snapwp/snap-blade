@@ -282,6 +282,13 @@ class Blade_Service_Provider extends Service_Provider
         );
 
         $blade->directive(
+            'searchform',
+            function () {
+                return "<?php get_search_form(); ?>";
+            }
+        );
+
+        $blade->directive(
             'setpostdata',
             function ($input) {
                 return '<?php setup_postdata($GLOBALS[\'post\'] =& '. $this->trim_input($input) .'); ?>';
@@ -290,7 +297,7 @@ class Blade_Service_Provider extends Service_Provider
 
         $blade->directive(
             'resetpostdata',
-            function ($input) {
+            function () {
                 return '<?php wp_reset_postdata(); ?>';
             }
         );
