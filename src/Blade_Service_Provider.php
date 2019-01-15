@@ -170,7 +170,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'posttypepartial',
             function () {
-                return '<?php echo $this->runChild(\'partials.post-type.\' . \get_post_type()); ?>';
+                return '<?php global $post; echo $this->runChild(\'partials.post-type.\' . \get_post_type(), [\'post\' => $post]); ?>';
             }
         );
 
@@ -278,6 +278,20 @@ class Blade_Service_Provider extends Service_Provider
             'navmenu',
             function ($input) {
                 return "<?php wp_nav_menu({$this->trim_input($input)}); ?>";
+            }
+        );
+
+        $blade->directive(
+            'setpostdata',
+            function ($input) {
+                return '<?php setup_postdata($GLOBALS[\'post\'] =& '. $this->trim_input($input) .'); ?>';
+            }
+        );
+
+        $blade->directive(
+            'resetpostdata',
+            function ($input) {
+                return '<?php wp_reset_postdata(); ?>';
             }
         );
     }
