@@ -17,9 +17,9 @@
         }
     },
     "require": {
-        "php": ">=7",
-        "snapwp/snap-core": ">=0.1",
-        "eftec/bladeone": "~3.11"
+        "php": ">=7.1",
+        "snapwp/snap-core": ">=0.6",
+        "eftec/bladeone": "~3.20"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "~3.0",
