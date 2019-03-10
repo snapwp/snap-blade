@@ -60,7 +60,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade = new Snap_Blade(
             Theme_Utils::get_active_theme_path(Config::get('theme.templates_directory')),
             Theme_Utils::get_active_theme_path(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
-            Config::get('blade.development_mode') ? BladeOne::MODE_SLOW : BladeOne::MODE_AUTO
+            Config::get('blade.development_mode') ? BladeOne::MODE_SLOW : BladeOne::MODE_FAST
         );
 
         if (Config::get('blade.file_extension') !==  $blade->getFileExtension()) {
