@@ -72,4 +72,34 @@ class Snap_Blade extends BladeOne
             \array_merge(View::get_additional_data($view, $data), $data)
         );
     }
+
+    /**
+     * Ensure the real dd() function is used if present.
+     *
+     * @param string $expression The expression to pass to dd().
+     * @return string
+     */
+    protected function compileDd($expression)
+    {
+        if (\function_exists('dd')) {
+            return $this->phpTag . " dd$expression; ?>";
+        }
+
+        return $this->phpTag." echo '<pre>'; var_dump$expression; echo '</pre>'; die;?>";
+    }
+
+    /**
+     * Ensure the real dump() function is used if present.
+     *
+     * @param string $expression The expression to pass to dump().
+     * @return string
+     */
+    protected function compileDump($expression)
+    {
+        if (\function_exists('dump')) {
+            return $this->phpTag . " dump$expression; ?>";
+        }
+
+        return $this->phpTag." echo '<pre>'; var_dump$expression; echo '</pre>';?>";
+    }
 }

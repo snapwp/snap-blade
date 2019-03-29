@@ -162,8 +162,9 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'partial',
             function ($input) {
-                $input = 'partials.' . \trim($input, '()\'');
-                return '<?php echo $this->runChild(\''.$input.'\'); ?>';
+                $input = $this->trim_input($input);
+                $input = \str_replace('partials.\'', 'partials.', '\'partials.' . $input);
+                return '<?php echo $this->runChild('.$input.'); ?>';
             }
         );
 
@@ -184,7 +185,7 @@ class Blade_Service_Provider extends Service_Provider
 			$pagination = \Snap\Services\Container::resolve(
 	            \Snap\Templating\Pagination::class,
 	            [
-	                \'args\' => ' . ($input) .',
+	                \'args\' => ' . $this->trim_input($input) .',
 	            ]
 	        );
 
