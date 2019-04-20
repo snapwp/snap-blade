@@ -2,7 +2,9 @@
 
 namespace Snap\Blade;
 
+use Snap\Http\Validation\Validation;
 use Snap\Services\Config;
+use Snap\Services\Request;
 use Snap\Templating\Templating_Interface;
 
 /**
@@ -127,6 +129,8 @@ class Blade_Strategy implements Templating_Interface
         $data['wp_query'] = $wp_query;
         $data['post'] = &$post;
         $data['current_view'] = $this->current_view;
+        $data['request'] = Request::get_root_instance();
+        $data['errors'] = Validation::$errors;
 
         return $data;
     }
