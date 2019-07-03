@@ -136,7 +136,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'simplemenu',
             function ($expression) {
-                \preg_match('/\( *(.*) * as *([^\)]*)/', $expression, $matches);
+                \preg_match('/([^\s]*)\s?as\s?(.*)/', $expression, $matches);
                 
                 $iteratee = \trim($matches[1]);
                 
