@@ -219,7 +219,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'endloop',
             function () {
-                return '<?php endwhile;  ?>';
+                return '<?php wp_reset_postdata(); endwhile;  ?>';
             }
         );
     }
