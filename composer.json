@@ -2,6 +2,8 @@
     "name": "snapwp/snap-blade",
     "license": "GPL-3.0-or-later",
     "description": "Add support for the Blade templating engine into SnapWP",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "authors": [
         {
             "name": "Jake Whiteley",
@@ -18,7 +20,7 @@
     },
     "require": {
         "php": ">=7.1",
-        "snapwp/snap-core": ">=0.6",
+        "snapwp/snap-core": "*",
         "eftec/bladeone": "~3.20"
     },
     "require-dev": {
