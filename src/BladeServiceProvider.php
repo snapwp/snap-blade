@@ -5,46 +5,43 @@ namespace Snap\Blade;
 use eftec\bladeone\BladeOne;
 use Snap\Services\Config;
 use Snap\Services\Container;
-use Snap\Services\Service_Provider;
+use Snap\Services\ServiceProvider;
 use Snap\Templating\Standard\Partial;
-use Snap\Templating\Standard\Standard_Strategy;
-use Snap\Templating\Templating_Interface;
-use Snap\Utils\Theme_Utils;
-use Snap\Utils\User_Utils;
+use Snap\Templating\Standard\StandardStrategy;
+use Snap\Templating\TemplatingInterface;
+use Snap\Utils\Theme;
+use Snap\Utils\User;
+
 
 /**
  * Snap Debug service provider.
  */
-class Blade_Service_Provider extends Service_Provider
+class BladeServiceProvider extends ServiceProvider
 {
     /**
      * Register the Service.
-     *
-     * @since  1.0.0
-     *
      */
     public function register()
     {
-        $this->add_config_location(\realpath(__DIR__ . '/../config'));
+        $this->addConfigLocation(\realpath(__DIR__ . '/../config'));
 
-        $this->add_blade();
+        $this->addBlade();
 
         Container::add(
-            Blade_Strategy::class,
-            function (\Snap\Core\Container $container) {
-                return $container->resolve(Blade_Strategy::class);
+            BladeStrategy::class,
+            function (\Hodl\Container $container) {
+                return $container->resolve(BladeStrategy::class);
             }
         );
 
-        Container::remove(Standard_Strategy::class);
-        Container::remove(Partial::class);
+        Container::remove(StandardStrategy::class);
 
         // Bind blade strategy as the current Templating engine.
-        Container::bind(Blade_Strategy::class, Templating_Interface::class);
+        Container::bind(BladeStrategy::class, TemplatingInterface::class);
 
-        $this->publishes_config(\realpath(__DIR__ . '/../config'));
+        $this->publishesConfig(\realpath(__DIR__ . '/../config'));
 
-        $this->publishes_directory(
+        $this->publishesDirectory(
             \realpath(__DIR__ . '/../templates'),
             Config::get('theme.templates_directory')
         );
@@ -55,11 +52,11 @@ class Blade_Service_Provider extends Service_Provider
      *
      * @since  1.0.0
      */
-    public function add_blade()
+    public function addBlade()
     {
-        $blade = new Snap_Blade(
-            Theme_Utils::get_active_theme_path(Config::get('theme.templates_directory')),
-            Theme_Utils::get_active_theme_path(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
+        $blade = new SnapBlade(
+            Theme::getActiveThemePath(Config::get('theme.templates_directory')),
+            Theme::getActiveThemePath(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
             Config::get('blade.development_mode') ? BladeOne::MODE_SLOW : BladeOne::MODE_AUTO
         );
 
@@ -74,29 +71,27 @@ class Blade_Service_Provider extends Service_Provider
             }
         );
 
-        $this->set_auth_callbacks($blade);
+        $this->setAuthCallbacks($blade);
 
-        $this->add_directives($blade);
-        $this->add_wp_directives($blade);
+        $this->addDirectives($blade);
+        $this->addWpDirectives($blade);
 
-        Container::add_instance($blade);
+        Container::addInstance($blade);
 
-        Container::alias(Snap_Blade::class, 'blade');
+        Container::alias(SnapBlade::class, 'blade');
     }
 
     /**
      * Sets the authentication and can/cannot functionality.
      *
-     * @since  1.0.0
-     *
      * @param BladeOne $blade The BladeOne service.
      */
-    private function set_auth_callbacks($blade)
+    private function setAuthCallbacks($blade)
     {
         // Set the current user.
         if (\is_user_logged_in()) {
             $current_user = \wp_get_current_user();
-            $blade->setAuth($current_user->data->display_name, User_Utils::get_user_role()->name);
+            $blade->setAuth($current_user->data->display_name, User::getUserRole()->name);
         }
 
         // Set the @can directive.
@@ -127,11 +122,9 @@ class Blade_Service_Provider extends Service_Provider
     /**
      * Add custom directives to blade.
      *
-     * @since  1.0.0
-     *
      * @param BladeOne $blade The BladeOne service.
      */
-    private function add_directives($blade)
+    private function addDirectives($blade)
     {
         $blade->directive(
             'simplemenu',
@@ -142,7 +135,7 @@ class Blade_Service_Provider extends Service_Provider
                 
                 $iteration = \trim($matches[2]);
                 
-                $init_loop = "\$__currentLoopData = \Snap\Utils\Menu_Utils::get_nav_menu($iteratee); 
+                $init_loop = "\$__currentLoopData = \Snap\Utils\Menu::getNavMenu($iteratee); 
                     \$this->addLoop(\$__currentLoopData);";
                
                 $iterate_loop = '$this->incrementLoopIndices(); 
@@ -162,7 +155,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'partial',
             function ($input) {
-                $input = $this->trim_input($input);
+                $input = $this->trimInput($input);
                 $input = \str_replace('partials.\'', 'partials.', '\'partials.' . $input);
                 return '<?php echo $this->runChild('.$input.'); ?>';
             }
@@ -185,7 +178,7 @@ class Blade_Service_Provider extends Service_Provider
 			$pagination = \Snap\Services\Container::resolve(
 	            \Snap\Templating\Pagination::class,
 	            [
-	                \'args\' => ' . $this->trim_input($input) .',
+	                \'args\' => ' . $this->trimInput($input) .',
 	            ]
 	        );
 
@@ -197,7 +190,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'loop',
             function ($input) {
-                $input = $this->trim_input($input);
+                $input = $this->trimInput($input);
 
                 $init_loop = '$__loop_query = $wp_query;';
 
@@ -227,11 +220,9 @@ class Blade_Service_Provider extends Service_Provider
     /**
      * Add custom directives for WordPress functions to blade.
      *
-     * @since  1.0.0
-     *
      * @param BladeOne $blade The BladeOne service.
      */
-    private function add_wp_directives($blade)
+    private function addWpDirectives($blade)
     {
         $blade->directive(
             'wphead',
@@ -250,14 +241,14 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'sidebar',
             function ($input) {
-                return "<?php dynamic_sidebar({$this->trim_input($input)}); ?>";
+                return "<?php dynamic_sidebar({$this->trimInput($input)}); ?>";
             }
         );
 
         $blade->directive(
             'action',
             function ($input) {
-                return "<?php do_action({$this->trim_input($input)}); ?>";
+                return "<?php do_action({$this->trimInput($input)}); ?>";
             }
         );
 
@@ -278,7 +269,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'navmenu',
             function ($input) {
-                return "<?php wp_nav_menu({$this->trim_input($input)}); ?>";
+                return "<?php wp_nav_menu({$this->trimInput($input)}); ?>";
             }
         );
 
@@ -292,7 +283,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'setpostdata',
             function ($input) {
-                return '<?php setup_postdata($GLOBALS[\'post\'] =& '. $this->trim_input($input) .'); ?>';
+                return '<?php setup_postdata($GLOBALS[\'post\'] =& '. $this->trimInput($input) .'); ?>';
             }
         );
 
@@ -307,12 +298,10 @@ class Blade_Service_Provider extends Service_Provider
     /**
      * Remove surrounding brackets from BladeOne inputs.
      *
-     * @since 1.0.0
-     *
      * @param $input
      * @return string
      */
-    private function trim_input($input)
+    private function trimInput($input)
     {
         return \trim($input, '()');
     }

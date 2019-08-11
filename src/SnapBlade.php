@@ -3,20 +3,18 @@
 namespace Snap\Blade;
 
 use eftec\bladeone\BladeOne;
-use Snap\Exceptions\Templating_Exception;
+use Snap\Exceptions\TemplatingException;
 use Snap\Templating\View;
 
 /**
  * Extends BladeOne.
  */
-class Snap_Blade extends BladeOne
+class SnapBlade extends BladeOne
 {
     /**
      * Overwrite the default error handler to throw a Templating_exception.
      *
-     * @since  1.0.0
-     *
-     * @throws Templating_Exception
+     * @throws TemplatingException
      * 
      * @param string $id     Title of the error.
      * @param string $text   Message of the error.
@@ -25,7 +23,7 @@ class Snap_Blade extends BladeOne
 	public function showError($id, $text, $critic = false)
     {
         \ob_get_clean();
-        throw new Templating_Exception($text);
+        throw new TemplatingException($text);
     }
 
     /**
@@ -47,7 +45,7 @@ class Snap_Blade extends BladeOne
             \array_merge(
                 $this->variables,
                 // Get default data for the current template.
-                View::get_additional_data($partial, $data),
+                View::getAdditionalData($partial, $data),
                 // Ensure data passed into parent view is passed to this child.
                 $data
             )
@@ -69,7 +67,7 @@ class Snap_Blade extends BladeOne
     {
         return parent::run(
             $view,
-            \array_merge(View::get_additional_data($view, $data), $data)
+            \array_merge(View::getAdditionalData($view, $data), $data)
         );
     }
 
