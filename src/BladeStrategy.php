@@ -136,7 +136,7 @@ class BladeStrategy implements TemplatingInterface
         $data['post'] = &$post;
         $data['current_view'] = $this->current_view;
         $data['request'] = Request::getRootInstance();
-        $data['errors'] = Validator::$errors;
+        $data['errors'] = Request::getGlobalErrors();
 
         return $data;
     }
