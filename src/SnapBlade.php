@@ -100,4 +100,9 @@ class SnapBlade extends BladeOne
 
         return $this->phpTag." echo '<pre>'; var_dump$expression; echo '</pre>';?>";
     }
+
+    protected function compileAsset($expression)
+    {
+        return $this->phpTag . " echo (isset(\$this->assetDict[$expression]))?\$this->assetDict[$expression]:snap_get_asset_url($expression); ?>";
+    }
 }

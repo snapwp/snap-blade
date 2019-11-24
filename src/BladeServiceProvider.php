@@ -6,7 +6,6 @@ use eftec\bladeone\BladeOne;
 use Snap\Services\Config;
 use Snap\Services\Container;
 use Snap\Services\ServiceProvider;
-use Snap\Templating\Standard\Partial;
 use Snap\Templating\Standard\StandardStrategy;
 use Snap\Templating\TemplatingInterface;
 use Snap\Utils\Theme;
@@ -70,6 +69,8 @@ class BladeServiceProvider extends ServiceProvider
                 return Container::get($namespace);
             }
         );
+
+        $blade->setBaseUrl(\get_stylesheet_directory_uri());
 
         $this->setAuthCallbacks($blade);
 
