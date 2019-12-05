@@ -294,6 +294,13 @@ class BladeServiceProvider extends ServiceProvider
                 return '<?php wp_reset_postdata(); ?>';
             }
         );
+	    
+	$blade->directive(
+            'csrf',
+            function ($input) {
+                return "<?php wp_nonce_field(". $this->trimInput($input). "); ?>";
+            }
+        );
     }
 
     /**
