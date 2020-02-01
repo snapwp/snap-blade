@@ -101,6 +101,18 @@ class SnapBlade extends BladeOne
         return $this->phpTag." echo '<pre>'; var_dump$expression; echo '</pre>';?>";
     }
 
+    /**
+     * It sets the base url and it also calculates the relative path.<br>
+     * The base url is calculated to determine the relativity of the resources.<br>
+     * The trailing slash is removed automatically if it's present.
+     *
+     * @param string $baseUrl Example http://www.web.com/folder  https://www.web.com/folder/anotherfolder
+     */
+    public function setBaseUrl($baseUrl)
+    {
+        $this->baseUrl = \rtrim($baseUrl, '/'); // base with the url trimmed
+    }
+
     protected function compileAsset($expression)
     {
         return $this->phpTag . " echo (isset(\$this->assetDict[$expression]))?\$this->assetDict[$expression]:snap_get_asset_url($expression); ?>";
