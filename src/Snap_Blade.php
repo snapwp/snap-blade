@@ -14,15 +14,15 @@ class Snap_Blade extends BladeOne
     /**
      * Overwrite the default error handler to throw a Templating_exception.
      *
-     * @since  1.0.0
+     * @param string $id
+     * @param string $text
+     * @param false $critic
+     * @param false $alwaysThrow * @throws Templating_Exception
      *
-     * @throws Templating_Exception
-     * 
-     * @param string $id     Title of the error.
-     * @param string $text   Message of the error.
-     * @param bool   $critic If true then the compilation is ended, otherwise it continues.
+     *@since  1.0.0
+     *
      */
-	public function showError($id, $text, $critic = false)
+    public function showError($id, $text, $critic = false, $alwaysThrow = false): string
     {
         \ob_get_clean();
         throw new Templating_Exception($text);
@@ -40,10 +40,10 @@ class Snap_Blade extends BladeOne
      *
      * @throws \Exception
      */
-    public function runChild($partial, $data = array())
+    public function runChild($partial, $data = array()): string
     {
         return parent::runChild(
-            $partial, 
+            $partial,
             \array_merge(
                 $this->variables,
                 // Get default data for the current template.
@@ -60,16 +60,16 @@ class Snap_Blade extends BladeOne
      * @since  1.0.0
      *
      * @param string $view The template name to render.
-     * @param array  $data The data to pass to BladeOne.
+     * @param array  $variables The data to pass to BladeOne.
      * @return string
      *
      * @throws \Exception
      */
-    public function run($view, $data = array())
+    public function run($view = null, $variables = array()): string
     {
         return parent::run(
             $view,
-            \array_merge(View::get_additional_data($view, $data), $data)
+            \array_merge(View::get_additional_data($view, $variables), $variables)
         );
     }
 
@@ -79,7 +79,7 @@ class Snap_Blade extends BladeOne
      * @param string $expression The expression to pass to dd().
      * @return string
      */
-    protected function compileDd($expression)
+    protected function compileDd($expression): string
     {
         if (\function_exists('dd')) {
             return $this->phpTag . " dd$expression; ?>";
@@ -94,7 +94,7 @@ class Snap_Blade extends BladeOne
      * @param string $expression The expression to pass to dump().
      * @return string
      */
-    protected function compileDump($expression)
+    protected function compileDump($expression): string
     {
         if (\function_exists('dump')) {
             return $this->phpTag . " dump$expression; ?>";
