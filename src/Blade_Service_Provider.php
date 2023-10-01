@@ -60,7 +60,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade = new Snap_Blade(
             Theme_Utils::get_active_theme_path(Config::get('theme.templates_directory')),
             Theme_Utils::get_active_theme_path(\trailingslashit(Config::get('theme.cache_directory')) . 'templates'),
-            Config::get('blade.development_mode') ? BladeOne::MODE_SLOW : BladeOne::MODE_AUTO
+            Config::get('blade.development_mode') ? BladeOne::MODE_SLOW : BladeOne::MODE_FAST
         );
 
         if (Config::get('blade.file_extension') !==  $blade->getFileExtension()) {
@@ -118,7 +118,7 @@ class Blade_Service_Provider extends Service_Provider
                         return true;
                     }
                 }
-            
+
                 return false;
             }
         );
@@ -137,14 +137,14 @@ class Blade_Service_Provider extends Service_Provider
             'simplemenu',
             function ($expression) {
                 \preg_match('/([^\s]*)\s?as\s?(.*)/', $expression, $matches);
-                
+
                 $iteratee = \trim($matches[1]);
-                
+
                 $iteration = \trim($matches[2]);
-                
+
                 $init_loop = "\$__currentLoopData = \Snap\Utils\Menu_Utils::get_nav_menu($iteratee); 
                     \$this->addLoop(\$__currentLoopData);";
-               
+
                 $iterate_loop = '$this->incrementLoopIndices(); 
                     $loop = $this->getFirstLoop();';
 
@@ -219,7 +219,7 @@ class Blade_Service_Provider extends Service_Provider
         $blade->directive(
             'endloop',
             function () {
-                return '<?php wp_reset_postdata(); endwhile;  ?>';
+                return '<?php endwhile;  ?>';
             }
         );
     }
@@ -314,6 +314,6 @@ class Blade_Service_Provider extends Service_Provider
      */
     private function trim_input($input)
     {
-        return \trim($input, '()');
+        return $input ? \trim($input, '()') : $input;
     }
 }
